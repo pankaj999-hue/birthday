@@ -574,7 +574,7 @@
         
         filterNode = synthAudioContext.createBiquadFilter();
         filterNode.type = "lowpass";
-        filterNode.frequency.setValueAtTime(750, synthAudioContext.currentTime); // Soft lofi low-pass filter
+        filterNode.frequency.setValueAtTime(2200, synthAudioContext.currentTime); // Open filter to let high frequencies pass (massively increases volume)
         
         masterGainNode = synthAudioContext.createGain();
         masterGainNode.gain.setValueAtTime(0, synthAudioContext.currentTime);
@@ -619,13 +619,13 @@
         const duration = beats * beatDuration;
         
         // Melody: Rhodes-like warm triangle wave
-        playTone(freq, time, duration * 0.95, "triangle", 0.75);
+        playTone(freq, time, duration * 0.95, "triangle", 1.2);
 
         // Chords: Slow backing sine pads scheduled at the beginning of each bar (every 3 beats)
         if (time >= nextChordTime - 0.01) {
           const chord = chords[chordIndex % chords.length];
           chord.forEach(chordFreq => {
-            playTone(chordFreq, time, beatDuration * 3.0, "sine", 0.35);
+            playTone(chordFreq, time, beatDuration * 3.0, "sine", 0.6);
           });
           chordIndex++;
           nextChordTime += beatDuration * 3.0;
@@ -652,7 +652,7 @@
         
         musicPlaying = true;
         masterGainNode.gain.setValueAtTime(masterGainNode.gain.value, synthAudioContext.currentTime);
-        masterGainNode.gain.linearRampToValueAtTime(1.5, synthAudioContext.currentTime + 0.5); // Warm fade-in
+        masterGainNode.gain.linearRampToValueAtTime(2.2, synthAudioContext.currentTime + 0.5); // Warm fade-in
 
         if (!musicInitialized) {
           musicInitialized = true;
