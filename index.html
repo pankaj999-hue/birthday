@@ -428,7 +428,11 @@
           }
           
           const stream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
+            audio: {
+              echoCancellation: false,
+              noiseSuppression: false,
+              autoGainControl: false
+            },
           });
           
           audioContext = new (window.AudioContext || window.webkitAudioContext)();
