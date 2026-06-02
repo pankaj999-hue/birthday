@@ -412,7 +412,6 @@
       // === Microphone / Blow Detection ===
       let blown = false;
       let micInitialized = false;
-      let micActive = false;
       let audioContext = null;
 
       async function initMicAndAudio() {
@@ -429,13 +428,8 @@
           }
           
           const stream = await navigator.mediaDevices.getUserMedia({
-            audio: {
-              echoCancellation: false,
-              noiseSuppression: false,
-              autoGainControl: false
-            },
+            audio: true,
           });
-          micActive = true;
           
           audioContext = new (window.AudioContext || window.webkitAudioContext)();
           const source = audioContext.createMediaStreamSource(stream);
@@ -493,8 +487,7 @@
           detectBlow();
         } catch (err) {
           console.error("Mic access error:", err);
-          micActive = false;
-          subTitle.textContent = "Mic access blocked. Tap the cake to blow out candles! 🎂";
+          subTitle.textContent = "Mic access blocked. Click anywhere to blow out candles! 🎂";
         }
       }
 
@@ -718,7 +711,7 @@
 
       // First interaction initializes microphone, subsequent interactions trigger blow fallback
       const handleInteraction = (e) => {
-        console.log("Interaction detected:", e.type, "micInitialized:", micInitialized, "blown:", blown, "micActive:", micActive);
+        console.log("Interaction detected:", e.type, "micInitialized:", micInitialized, "blown:", blown);
         
         // Start lofi music on first interaction
         if (!synthAudioContext || synthAudioContext.state === "suspended") {
@@ -727,27 +720,13 @@
 
         if (!micInitialized) {
           initMicAndAudio();
-        } else if (!blown && !micActive) {
-          // Only trigger fallback blow out if mic is blocked or unsupported
+        } else if (!blown) {
           triggerBlowOut();
         }
       };
 
       document.addEventListener("click", handleInteraction);
       document.addEventListener("touchstart", handleInteraction);
-
-      // Fallback: Tapping the cake container directly will blow it out manually
-      const cakeContainer = document.querySelector(".cake-container");
-      if (cakeContainer) {
-        const manualBlow = (e) => {
-          e.stopPropagation(); // Don't trigger document interaction handlers
-          if (!blown) {
-            triggerBlowOut();
-          }
-        };
-        cakeContainer.addEventListener("click", manualBlow);
-        cakeContainer.addEventListener("touchstart", manualBlow);
-      }
 
       // Audio Button Event Binding
       const audioBtn = document.getElementById("audioControlBtn");
