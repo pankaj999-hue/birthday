@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Birthday Cake 🎂</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      #mainTitle {
+        font-size: 32px;
+        font-family: 'Pixelify Sans', sans-serif;
+        margin-bottom: 8px;
+      }
+
+      #subTitle {
+        font-size: 18px;
+        font-family: 'Pixelify Sans', sans-serif;
+        color: #555;
+      }
+
+      #visualizerContainer {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        margin: 15px auto;
+        gap: 6px;
+        background-color: transparent;
+      }
+
+      #visualizerLabel {
+        font-size: 14px;
+        font-family: 'Pixelify Sans', sans-serif;
+        color: #333;
+        background-color: transparent;
+      }
+
+      #visualizerTrack {
+        width: 180px;
+        height: 18px;
+        border: 4px solid #333;
+        background-color: #fff;
+        position: relative;
+        box-shadow: 4px 4px 0 0 #333;
+      }
+
+      #visualizerBar {
+        width: 0%;
+        height: 100%;
+        background-color: #ff8a80; /* Pastel red/pink */
+        transition: width 0.05s ease-out;
+      }
+
+      /* Card Overlay Styles */
+      .card-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+        font-family: 'Pixelify Sans', sans-serif;
+      }
+
+      .card-overlay.show {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      #birthdayCard {
+        background-color: #fff;
+        border: 6px solid #333;
+        padding: 30px;
+        max-width: 400px;
+        width: 85%;
+        box-shadow: 8px 8px 0 0 #ffb74d; /* Pastel yellow/orange shadow */
+        text-align: center;
+        transform: scale(0.8);
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+
+      .card-overlay.show #birthdayCard {
+        transform: scale(1);
+      }
+
+      #birthdayCard h2 {
+        font-size: 28px;
+        margin-top: 0;
+        color: #ff5252;
+        background-color: transparent;
+      }
+
+      #birthdayCard p {
+        font-size: 16px;
+        line-height: 1.6;
+        color: #333;
+        background-color: transparent;
+        margin: 15px 0;
+      }
+
+      #birthdayCard .close-btn {
+        margin-top: 15px;
+        padding: 8px 20px;
+        background-color: #81c784; /* Pastel green */
+        color: #333;
+        border: 4px solid #333;
+        font-family: 'Pixelify Sans', sans-serif;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 4px 4px 0 0 #333;
+        outline: none;
+        transition: transform 0.1s, box-shadow 0.1s;
+      }
+
+      #birthdayCard .close-btn:active {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0 0 #333;
+      }
+
+      #audioControlBtn {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 8px 12px;
+        background-color: #fff;
+        border: 4px solid #333;
+        font-family: 'Pixelify Sans', sans-serif;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 4px 4px 0 0 #333;
+        z-index: 1001; /* Stay above overlay */
+        outline: none;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      #audioControlBtn:active {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0 0 #333;
+      }
+
+      #flavorPanel {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: nowrap; /* Force 1 line */
+        gap: 8px;
+        margin-top: 10px; /* pull closer to the cake */
+        background-color: transparent;
+        z-index: 10;
+        font-family: 'Pixelify Sans', sans-serif;
+      }
+
+      .flavor-btn {
+        padding: 5px 10px;
+        background-color: #fff;
+        border: 3px solid #333;
+        font-family: 'Pixelify Sans', sans-serif;
+        font-size: 13px;
+        cursor: pointer;
+        box-shadow: 3px 3px 0 0 #333;
+        outline: none;
+        transition: transform 0.1s, box-shadow 0.1s;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap; /* Don't wrap text */
+      }
+
+      .flavor-btn:active, .flavor-btn.active {
+        transform: translate(2px, 2px);
+        box-shadow: 1px 1px 0 0 #333;
+        background-color: #f0f0f0;
+      }
+
+      /* Flavor Filters */
+      .flavor-strawberry {
+        filter: none;
+      }
+
+      .flavor-chocolate {
+        filter: sepia(0.6) hue-rotate(-20deg) saturate(1.4) brightness(0.65);
+      }
+
+      .flavor-matcha {
+        filter: hue-rotate(85deg) saturate(1.1) brightness(0.9);
+      }
+
+      .flavor-blueberry {
+        filter: hue-rotate(185deg) saturate(1.2) brightness(0.95);
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        overflow: hidden !important; /* Disable scrolling completely */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* Centering Cake and removing hacky offsets */
+      .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        box-sizing: border-box;
+        padding: 10px 20px !important;
+        padding-bottom: 0 !important;
+      }
+      
+      .cake-container {
+        padding-right: 0 !important;
+        width: 384px; /* 64px * 6.0 scale */
+        height: 510px; /* 85px * 6.0 scale = 510px (fits cake height exactly with 0 overlap) */
+        position: relative;
+        margin: 10px auto;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+      }
+
+      .cake {
+        transform: scale(6.0) !important; /* Scale 6.0 fits desktop viewports with 0 scrolling */
+        transform-origin: 0 0;
+        position: absolute;
+        top: 0;
+        left: 50%;
+        margin-left: -192px !important; /* (32px * 6.0) centers visual shadow */
+      }
+
+      /* Mobile layout adjustments */
+      @media (max-width: 600px) {
+        body {
+          padding: 0;
+          height: 100vh;
+          overflow: hidden !important;
+        }
+
+        #birthdayText {
+          font-size: 2.0rem !important;
+        }
+        
+        #mainTitle {
+          font-size: 22px !important;
+        }
+
+        #subTitle {
+          font-size: 14px !important;
+          max-width: 280px;
+          margin: 0 auto;
+        }
+
+        .container {
+          padding-top: 10px !important;
+          padding-bottom: 10px !important;
+        }
+
+        .cake-container {
+          padding-right: 0 !important;
+          width: 288px !important; /* 64px * 4.5 scale */
+          height: 385px !important; /* 85px * 4.5 scale = 382.5px (fits cake height exactly with 0 overlap) */
+          margin: 5px auto !important;
+        }
+
+        .cake {
+          transform: scale(4.5) !important; /* Fits mobile screen height exactly without scroll */
+          margin-left: -144px !important; /* (32px * 4.5) centers visual shadow */
+        }
+
+        #audioControlBtn {
+          top: 10px;
+          right: 10px;
+          font-size: 13px;
+          padding: 4px 8px;
+        }
+
+        #flavorPanel {
+          flex-wrap: nowrap !important;
+          max-width: 100%;
+          gap: 4px;
+          margin-top: 8px;
+        }
+
+        .flavor-btn {
+          font-size: 11px;
+          padding: 4px 6px;
+        }
+        
+        #birthdayCard {
+          padding: 20px;
+          width: 90%;
+        }
+
+        #birthdayCard h2 {
+          font-size: 22px;
+        }
+
+        #birthdayCard p {
+          font-size: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button id="audioControlBtn">🔇 Sound: Off</button>
+    <div class="container">
+      <div id="birthdayText"></div>
+      <div id="visualizerContainer">
+        <div id="visualizerLabel">Blow Strength</div>
+        <div id="visualizerTrack">
+          <div id="visualizerBar"></div>
+        </div>
+      </div>
+      <div class="cake-container">
+        <div class="cake flavor-strawberry" id="cake"></div>
+      </div>
+      <div id="flavorPanel">
+        <button class="flavor-btn active" data-flavor="strawberry">🍓 Strawberry</button>
+        <button class="flavor-btn" data-flavor="chocolate">🍫 Chocolate</button>
+        <button class="flavor-btn" data-flavor="matcha">🍵 Matcha</button>
+        <button class="flavor-btn" data-flavor="blueberry">🫐 Blueberry</button>
+      </div>
+    </div>
+
+    <div id="cardOverlay" class="card-overlay">
+      <div id="birthdayCard">
+        <h2>Dear Aamina,</h2>
+        <p>Hope you are having wonderful day. Enjoy your day! I have nothing else to say, bye!</p>
+        <button id="closeCardBtn" class="close-btn">Thank You! 💖</button>
+      </div>
+    </div>
+
+    <script>
+      // Read URL params
+      const params = new URLSearchParams(window.location.search);
+      const name = params.get("name") || "Aamina";
+      let candleCount = parseInt(params.get("candles")) || 4;
+      candleCount = Math.min(Math.max(candleCount, 1), 30);
+
+      const birthdayText = document.getElementById("birthdayText");
+      birthdayText.innerHTML = `
+        <div id="mainTitle">Happy Birthday, ${name}!</div>
+        <div id="subTitle">Click anywhere to start! 🎂</div>
+      `;
+
+      const cake = document.getElementById("cake");
+
+      const colors = [
+        "green-candle",
+        "purple-candle",
+        "blue-candle",
+        "yellow-candle",
+      ];
+      const CAKE_VISUAL_WIDTH = 35;
+
+      function createCandles(count) {
+        cake.innerHTML = "";
+        const CANDLE_VISUAL_WIDTH = 2;
+        const availableWidth = CAKE_VISUAL_WIDTH;
+        const candlesPerRow = 6;
+        const rowCount = Math.ceil(count / candlesPerRow);
+        const shiftAmount = 4;
+
+        for (let i = 0; i < count; i++) {
+          const candle = document.createElement("div");
+          candle.classList.add("candle");
+          const colorClass = colors[Math.floor(Math.random() * colors.length)];
+          candle.classList.add(colorClass);
+
+          const row = Math.floor(i / candlesPerRow);
+          const col = i % candlesPerRow;
+          const totalCandlesInRow = Math.min(
+            candlesPerRow,
+            count - row * candlesPerRow
+          );
+          const rowSpacing = availableWidth / (totalCandlesInRow + 1);
+
+          const leftBase = rowSpacing * (col + 1) - CANDLE_VISUAL_WIDTH / 2 + 5;
+          const rowShift = row % 2 === 0 ? 0 : shiftAmount;
+
+          candle.style.position = "absolute";
+          candle.style.top = `${10 + row * 3}px`;
+          candle.style.left = `${leftBase - rowShift + 4}px`;
+
+          cake.appendChild(candle);
+        }
+      }
+
+      createCandles(candleCount);
+
+      // === Microphone / Blow Detection ===
+      let blown = false;
+      let micInitialized = false;
+      let audioContext = null;
+
+      async function initMicAndAudio() {
+        if (micInitialized) return;
+        micInitialized = true;
+
+        const subTitle = document.getElementById("subTitle");
+        const visualizerContainer = document.getElementById("visualizerContainer");
+        const visualizerBar = document.getElementById("visualizerBar");
+
+        try {
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error("getUserMedia not supported in this browser context");
+          }
+          
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+          
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const source = audioContext.createMediaStreamSource(stream);
+          const analyser = audioContext.createAnalyser();
+          analyser.fftSize = 512;
+
+          source.connect(analyser);
+
+          const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+          subTitle.textContent = "Blow into your mic, or click anywhere to blow! 🌬️";
+          if (visualizerContainer) {
+            visualizerContainer.style.display = "flex";
+          }
+
+          function detectBlow() {
+            if (blown) {
+              if (visualizerContainer) visualizerContainer.style.display = "none";
+              return;
+            }
+            analyser.getByteFrequencyData(dataArray);
+
+            let highFreqSum = 0;
+            let lowFreqSum = 0;
+            const midpoint = dataArray.length / 2;
+
+            for (let i = 0; i < dataArray.length; i++) {
+              if (i < midpoint) {
+                lowFreqSum += dataArray[i];
+              } else {
+                highFreqSum += dataArray[i];
+              }
+            }
+
+            const highAvg = highFreqSum / (dataArray.length / 2);
+            const lowAvg = lowFreqSum / (dataArray.length / 2);
+            const ratio = highAvg / (lowAvg + 1);
+
+            const BLOW_RATIO_THRESHOLD = 0.5;
+
+            // Map the blow ratio to percentage (0% to 100%)
+            const percentage = Math.min((ratio / BLOW_RATIO_THRESHOLD) * 100, 100);
+            if (visualizerBar) {
+              visualizerBar.style.width = `${percentage}%`;
+            }
+
+            if (ratio > BLOW_RATIO_THRESHOLD) {
+              triggerBlowOut();
+              if (visualizerContainer) visualizerContainer.style.display = "none";
+            } else {
+              requestAnimationFrame(detectBlow);
+            }
+          }
+
+          detectBlow();
+        } catch (err) {
+          console.error("Mic access error:", err);
+          subTitle.textContent = "Mic access blocked. Click anywhere to blow out candles! 🎂";
+        }
+      }
+
+      function triggerBlowOut() {
+        if (blown) return;
+        blown = true;
+        
+        const visualizerContainer = document.getElementById("visualizerContainer");
+        if (visualizerContainer) {
+          visualizerContainer.style.display = "none";
+        }
+        
+        blowOutCandles();
+      }
+
+      function blowOutCandles() {
+        const candles = document.querySelectorAll(".candle");
+        candles.forEach((candle) => {
+          const delay = Math.random() * 1000;
+          setTimeout(() => {
+            colors.forEach((color) => {
+              if (candle.classList.contains(color)) {
+                candle.classList.add("blown");
+              }
+            });
+          }, delay);
+        });
+
+        // Update subTitle after short delay
+        setTimeout(() => {
+          const subTitle = document.getElementById("subTitle");
+          subTitle.textContent = `Yayy! Wishing you the happiest birthday ever!! 🎉`;
+        }, 1200);
+
+        // Show birthday card after candles are blown
+        setTimeout(() => {
+          const cardOverlay = document.getElementById("cardOverlay");
+          if (cardOverlay) {
+            cardOverlay.classList.add("show");
+          }
+        }, 2500);
+      }
+
+      // === Lofi Music Synthesizer ===
+      let musicPlaying = false;
+      let musicInitialized = false;
+      let synthAudioContext = null;
+      let masterGainNode = null;
+      let filterNode = null;
+      let sequenceTimer = null;
+
+      const tempo = 85; // Chill, slow tempo
+      const beatDuration = 60 / tempo;
+
+      // Happy Birthday Melody in F Major
+      const melody = [
+        [261.63, 0.75], [261.63, 0.25], // C4, C4
+        [293.66, 1.0],                  // D4
+        [261.63, 1.0],                  // C4
+        [349.23, 1.0],                  // F4
+        [329.63, 2.0],                  // E4
+        
+        [261.63, 0.75], [261.63, 0.25], // C4, C4
+        [293.66, 1.0],                  // D4
+        [261.63, 1.0],                  // C4
+        [392.00, 1.0],                  // G4
+        [349.23, 2.0],                  // F4
+        
+        [261.63, 0.75], [261.63, 0.25], // C4, C4
+        [523.25, 1.0],                  // C5
+        [440.00, 1.0],                  // A4
+        [349.23, 1.0],                  // F4
+        [329.63, 1.0],                  // E4
+        [293.66, 2.0],                  // D4
+        
+        [466.16, 0.75], [466.16, 0.25], // Bb4, Bb4
+        [440.00, 1.0],                  // A4
+        [349.23, 1.0],                  // F4
+        [392.00, 1.0],                  // G4
+        [349.23, 2.0]                   // F4
+      ];
+
+      // Cozy chords aligned with bar timings (3 beats per bar)
+      const chords = [
+        [87.31, 130.81, 174.61, 220.00], // F Major
+        [87.31, 130.81, 174.61, 220.00], // F Major
+        [65.41, 98.00, 164.81, 233.08],  // C7
+        [65.41, 98.00, 164.81, 233.08],  // C7
+        [87.31, 130.81, 174.61, 220.00], // F Major
+        [87.31, 130.81, 174.61, 220.00], // F Major
+        [58.27, 87.31, 146.83, 174.61],  // Bb Major
+        [87.31, 130.81, 164.81, 233.08], // F / C7
+        [87.31, 130.81, 174.61, 220.00]  // F Major
+      ];
+
+      let nextNoteTime = 0.0;
+      let nextChordTime = 0.0;
+      let noteIndex = 0;
+      let chordIndex = 0;
+
+      function initSynth() {
+        if (synthAudioContext) return;
+        synthAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        filterNode = synthAudioContext.createBiquadFilter();
+        filterNode.type = "lowpass";
+        filterNode.frequency.setValueAtTime(750, synthAudioContext.currentTime); // Soft lofi low-pass filter
+        
+        masterGainNode = synthAudioContext.createGain();
+        masterGainNode.gain.setValueAtTime(0, synthAudioContext.currentTime);
+        
+        filterNode.connect(masterGainNode);
+        masterGainNode.connect(synthAudioContext.destination);
+      }
+
+      function playTone(freq, startTime, duration, type = "triangle", gainVal = 0.12) {
+        if (!synthAudioContext) return;
+        
+        const osc = synthAudioContext.createOscillator();
+        const gainNode = synthAudioContext.createGain();
+        
+        osc.type = type;
+        osc.frequency.value = freq;
+        
+        gainNode.gain.setValueAtTime(0, startTime);
+        gainNode.gain.linearRampToValueAtTime(gainVal, startTime + 0.06); // Soft attack
+        gainNode.gain.setValueAtTime(gainVal, startTime + duration - 0.06);
+        gainNode.gain.linearRampToValueAtTime(0, startTime + duration); // Soft release
+        
+        osc.connect(gainNode);
+        gainNode.connect(filterNode);
+        
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+      }
+
+      function scheduler() {
+        if (!musicPlaying) return;
+        while (nextNoteTime < synthAudioContext.currentTime + 0.3) {
+          scheduleNote(noteIndex, nextNoteTime);
+          advanceNote();
+        }
+      }
+
+      function scheduleNote(index, time) {
+        const item = melody[index];
+        const freq = item[0];
+        const beats = item[1];
+        const duration = beats * beatDuration;
+        
+        // Melody: Rhodes-like warm triangle wave
+        playTone(freq, time, duration * 0.95, "triangle", 0.14);
+
+        // Chords: Slow backing sine pads scheduled at the beginning of each bar (every 3 beats)
+        if (time >= nextChordTime - 0.01) {
+          const chord = chords[chordIndex % chords.length];
+          chord.forEach(chordFreq => {
+            playTone(chordFreq, time, beatDuration * 3.0, "sine", 0.07);
+          });
+          chordIndex++;
+          nextChordTime += beatDuration * 3.0;
+        }
+      }
+
+      function advanceNote() {
+        const item = melody[noteIndex];
+        const beats = item[1];
+        nextNoteTime += beats * beatDuration;
+        
+        noteIndex++;
+        if (noteIndex >= melody.length) {
+          noteIndex = 0;
+          nextNoteTime += beatDuration * 1.5; // Sweet pause before loop restarts
+        }
+      }
+
+      function startMusic() {
+        initSynth();
+        if (synthAudioContext.state === "suspended") {
+          synthAudioContext.resume();
+        }
+        
+        musicPlaying = true;
+        masterGainNode.gain.setValueAtTime(masterGainNode.gain.value, synthAudioContext.currentTime);
+        masterGainNode.gain.linearRampToValueAtTime(0.35, synthAudioContext.currentTime + 0.5); // Warm fade-in
+        
+        const audioBtn = document.getElementById("audioControlBtn");
+        if (audioBtn) {
+          audioBtn.textContent = "🔊 Sound: On";
+        }
+
+        if (!musicInitialized) {
+          musicInitialized = true;
+          nextNoteTime = synthAudioContext.currentTime + 0.1;
+          nextChordTime = nextNoteTime;
+          noteIndex = 0;
+          chordIndex = 0;
+          sequenceTimer = setInterval(scheduler, 100);
+        }
+      }
+
+      function stopMusic() {
+        if (masterGainNode) {
+          masterGainNode.gain.setValueAtTime(masterGainNode.gain.value, synthAudioContext.currentTime);
+          masterGainNode.gain.linearRampToValueAtTime(0, synthAudioContext.currentTime + 0.3); // Quick fade-out
+        }
+        musicPlaying = false;
+        const audioBtn = document.getElementById("audioControlBtn");
+        if (audioBtn) {
+          audioBtn.textContent = "🔇 Sound: Off";
+        }
+      }
+
+      function toggleMusic() {
+        if (musicPlaying) {
+          stopMusic();
+        } else {
+          startMusic();
+        }
+      }
+
+      // First interaction initializes microphone, subsequent interactions trigger blow fallback
+      const handleInteraction = (e) => {
+        console.log("Interaction detected:", e.type, "micInitialized:", micInitialized, "blown:", blown);
+        
+        // Start lofi music on first interaction
+        if (!synthAudioContext || synthAudioContext.state === "suspended") {
+          startMusic();
+        }
+
+        if (!micInitialized) {
+          initMicAndAudio();
+        } else if (!blown) {
+          triggerBlowOut();
+        }
+      };
+
+      document.addEventListener("click", handleInteraction);
+      document.addEventListener("touchstart", handleInteraction);
+
+      // Audio Button Event Binding
+      const audioBtn = document.getElementById("audioControlBtn");
+      audioBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleMusic();
+      });
+      audioBtn.addEventListener("touchstart", (e) => {
+        e.stopPropagation();
+        toggleMusic();
+      });
+
+      // Card Overlay Close Button Listener
+      document.getElementById("closeCardBtn").addEventListener("click", () => {
+        const cardOverlay = document.getElementById("cardOverlay");
+        if (cardOverlay) {
+          cardOverlay.classList.remove("show");
+        }
+      });
+
+      // Flavor Selector Panel Logic
+      const flavorButtons = document.querySelectorAll(".flavor-btn");
+      const cakeElement = document.getElementById("cake");
+
+      flavorButtons.forEach((btn) => {
+        const selectFlavor = () => {
+          const flavor = btn.getAttribute("data-flavor");
+          
+          // Remove existing flavor classes from cake
+          cakeElement.classList.forEach((cls) => {
+            if (cls.startsWith("flavor-")) {
+              cakeElement.classList.remove(cls);
+            }
+          });
+          
+          // Add selected flavor class
+          cakeElement.classList.add(`flavor-${flavor}`);
+          
+          // Toggle active class on buttons
+          flavorButtons.forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+        };
+
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation(); // Avoid triggering page interaction logic
+          selectFlavor();
+        });
+        btn.addEventListener("touchstart", (e) => {
+          e.stopPropagation();
+          selectFlavor();
+        });
+      });
+    </script>
+  </body>
+</html>
