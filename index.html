@@ -468,7 +468,7 @@
             const lowAvg = lowFreqSum / (dataArray.length / 2);
             const ratio = highAvg / (lowAvg + 1);
 
-            const BLOW_RATIO_THRESHOLD = 0.5;
+            const BLOW_RATIO_THRESHOLD = 0.25;
 
             // Map the blow ratio to percentage (0% to 100%)
             const percentage = Math.min((ratio / BLOW_RATIO_THRESHOLD) * 100, 100);
