@@ -672,10 +672,16 @@
         musicPlaying = false;
       }
 
-      // First interaction initializes microphone, subsequent interactions trigger blow fallback
+      // First interaction initializes microphone and audio context, subsequent interactions trigger blow fallback
       const handleInteraction = (e) => {
         console.log("Interaction detected:", e.type, "micInitialized:", micInitialized, "blown:", blown);
         
+        // Initialize and unlock the audio context on the first user gesture
+        initSynth();
+        if (synthAudioContext && synthAudioContext.state === "suspended") {
+          synthAudioContext.resume();
+        }
+
         if (!micInitialized) {
           initMicAndAudio();
         } else if (!blown) {
